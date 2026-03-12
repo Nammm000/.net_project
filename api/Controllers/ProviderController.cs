@@ -1,30 +1,35 @@
-using api.Dtos.Product;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Dtos.Provider;
+using api.Interfaces.Repositories;
 using api.Interfaces.Service;
 using api.Models;
+using api.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using api.Interfaces.Repositories;
-// using api.Repositories;
 using Microsoft.EntityFrameworkCore;
+// using api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
-    [Route("product")]
+    [Route("provider")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProviderController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
 
-        private readonly IProductRepository _productRepo;
+        private readonly IProviderRepository _providerRepo;
 
-        public ProductController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
-        IProductRepository productRepo)
+        public ProviderController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
+        IProviderRepository providerRepo)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
-            _productRepo = productRepo;
+            _providerRepo = providerRepo;
         }
 
         // [HttpGet]
@@ -48,67 +53,64 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetAllProduct();
+            var providers = await _providerRepo.GetAllProvider();
 
-            if (product == null)
+            if (providers == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(providers);
         }
 
-        [HttpGet("{id:long}")]
-        [Authorize]
-        public async Task<IActionResult> GetById([FromRoute] long id)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        // [HttpGet("{id:long}")]
+        // public async Task<IActionResult> GetById([FromRoute] long id)
+        // {
+        //     if (!ModelState.IsValid)
+        //         return BadRequest(ModelState);
 
-            var product = await _productRepo.GetProductById(id);
+        //     var provider = await _providerRepo.GetByIdAsync(id);
 
-            if (product == null)
-            {
-                return NotFound();
-            }
+        //     if (provider == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            return Ok(product);
-        }
+        //     return Ok(provider);
+        // }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddProduct([FromBody] ProductAERequestDto productAERequestDto)
+        public async Task<IActionResult> AddProvider([FromBody] ProviderAERequestDto providerAERequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             if (!_currentUserService.IsAdmin())
-                return Unauthorized("Only admins can add products!");
+                return Unauthorized("Only admins can add providers!");
 
-            var productModel = await _productRepo.AddAsync(productAERequestDto);
-            if (productModel == null)
-            {
-                return BadRequest("Failed to add product.");
-            }
-            return Ok(productModel);
+            var providerModel = providerAERequestDto.ToProviderFromCreateDTO();
+
+            await _providerRepo.AddAsync(providerModel);
+            return Ok(providerModel);
         }
 
         [HttpPut]
         [Route("{id:long}")]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] ProductAERequestDto updateDto)
+        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] ProviderAERequestDto updateDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.UpdateAsync(id, updateDto);
+            var providerModel = await _providerRepo.UpdateAsync(id, updateDto);
 
-            if (productModel == null)
+            if (providerModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(productModel);
+            return Ok(providerModel);
         }
 
         [HttpDelete]
@@ -119,9 +121,9 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.DeleteAsync(id);
+            var providerModel = await _providerRepo.DeleteAsync(id);
 
-            if (productModel == null)
+            if (providerModel == null)
             {
                 return NotFound();
             }

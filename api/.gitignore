@@ -8,6 +8,12 @@ nupkg/
 # Visual Studio Code
 .vscode/
 
+# bin and obj folders
+/bin/
+**/bin/
+**/obj/
+
+
 # Rider
 .idea/
 

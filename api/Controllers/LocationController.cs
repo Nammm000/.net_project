@@ -1,30 +1,31 @@
-using api.Dtos.Product;
+using api.Dtos.Location;
+using api.Interfaces.Repositories;
 using api.Interfaces.Service;
 using api.Models;
+using api.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using api.Interfaces.Repositories;
-// using api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
-    [Route("product")]
+    [Route("location")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class LocationController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
 
-        private readonly IProductRepository _productRepo;
+        private readonly ILocationRepository _locationRepo;
 
-        public ProductController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
-        IProductRepository productRepo)
+        public LocationController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
+        ILocationRepository locationRepo)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
-            _productRepo = productRepo;
+            _locationRepo = locationRepo;
         }
 
         // [HttpGet]
@@ -42,20 +43,19 @@ namespace api.Controllers
         // }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetAllProduct();
+            var location = await _locationRepo.GetAllLocationsAsync();
 
-            if (product == null)
+            if (location == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(location);
         }
 
         [HttpGet("{id:long}")]
@@ -65,50 +65,48 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetProductById(id);
+            var location = await _locationRepo.GetByIdAsync(id);
 
-            if (product == null)
+            if (location == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(location);
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddProduct([FromBody] ProductAERequestDto productAERequestDto)
+        public async Task<IActionResult> AddLocation([FromBody] LocationAERequestDto locationAERequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             if (!_currentUserService.IsAdmin())
-                return Unauthorized("Only admins can add products!");
+                return Unauthorized("Only admins can add locations!");
 
-            var productModel = await _productRepo.AddAsync(productAERequestDto);
-            if (productModel == null)
-            {
-                return BadRequest("Failed to add product.");
-            }
-            return Ok(productModel);
+            var locationModel = locationAERequestDto.ToLocationFromCreateDTO();
+
+            await _locationRepo.AddAsync(locationModel);
+            return Ok(locationModel);
         }
 
         [HttpPut]
         [Route("{id:long}")]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] ProductAERequestDto updateDto)
+        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] LocationAERequestDto updateDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.UpdateAsync(id, updateDto);
+            var locationModel = await _locationRepo.UpdateAsync(id, updateDto);
 
-            if (productModel == null)
+            if (locationModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(productModel);
+            return Ok(locationModel);
         }
 
         [HttpDelete]
@@ -119,9 +117,9 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.DeleteAsync(id);
+            var locationModel = await _locationRepo.DeleteAsync(id);
 
-            if (productModel == null)
+            if (locationModel == null)
             {
                 return NotFound();
             }

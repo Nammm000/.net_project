@@ -1,30 +1,34 @@
-using api.Dtos.Product;
+// using System;
+// using System.Collections.Generic;
+// using System.Linq;
+// using System.Threading.Tasks;
+using api.Dtos.Customer;
+using api.Interfaces.Repositories;
 using api.Interfaces.Service;
 using api.Models;
+using api.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using api.Interfaces.Repositories;
-// using api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
-    [Route("product")]
+    [Route("customer")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class CustomerController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
 
-        private readonly IProductRepository _productRepo;
+        private readonly ICustomerRepository _customerRepo;
 
-        public ProductController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
-        IProductRepository productRepo)
+        public CustomerController(UserManager<AppUser> userManager, ICurrentUserService currentUserService, ICustomerRepository customerRepo)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
-            _productRepo = productRepo;
+            _customerRepo = customerRepo;
         }
 
         // [HttpGet]
@@ -48,14 +52,14 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetAllProduct();
+            var customer = await _customerRepo.GetAllCustomersAsync();
 
-            if (product == null)
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(customer);
         }
 
         [HttpGet("{id:long}")]
@@ -65,50 +69,48 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetProductById(id);
+            var customer = await _customerRepo.GetCustomerByIdAsync(id);
 
-            if (product == null)
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(customer);
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddProduct([FromBody] ProductAERequestDto productAERequestDto)
+        public async Task<IActionResult> AddCustomer([FromBody] CustomerAERequestDto customerAERequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             if (!_currentUserService.IsAdmin())
-                return Unauthorized("Only admins can add products!");
+                return Unauthorized("Only admins can add customers!");
 
-            var productModel = await _productRepo.AddAsync(productAERequestDto);
-            if (productModel == null)
-            {
-                return BadRequest("Failed to add product.");
-            }
-            return Ok(productModel);
+            var customerModel = customerAERequestDto.ToCustomerFromCreateDTO();
+
+            await _customerRepo.AddAsync(customerModel);
+            return Ok(customerModel);
         }
 
         [HttpPut]
         [Route("{id:long}")]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] ProductAERequestDto updateDto)
+        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] CustomerAERequestDto updateDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.UpdateAsync(id, updateDto);
+            var customerModel = await _customerRepo.UpdateAsync(id, updateDto);
 
-            if (productModel == null)
+            if (customerModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(productModel);
+            return Ok(customerModel);
         }
 
         [HttpDelete]
@@ -119,9 +121,9 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.DeleteAsync(id);
+            var customerModel = await _customerRepo.DeleteAsync(id);
 
-            if (productModel == null)
+            if (customerModel == null)
             {
                 return NotFound();
             }

@@ -1,18 +1,20 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
-    [Table("category1")]
-    public class Category
+    [Table("location1")]
+    public class Location
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        [Column("name")]
         public string Name { get; set; }
 
-        public string Description { get; set; }
+        public string Address { get; set; }
+
+        public ICollection<Warehouse> Warehouses { get; set; }
     }
 }

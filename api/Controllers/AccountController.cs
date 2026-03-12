@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Dtos.Account;
-using api.Interfaces;
+using api.Interfaces.Service;
 using api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +40,8 @@ namespace api.Controllers
             if (!result.Succeeded) return Unauthorized("Username not found and/or password incorrect");
             var roles = await _userManager.GetRolesAsync(user);
             // Console.WriteLine("Role Result: " + roles[0]);
+            // Console.WriteLine("useremail: " + user.Email);
+            // Console.WriteLine("username: " + user.UserName);
 
             return Ok(
                 new NewUserDto
@@ -70,7 +72,7 @@ namespace api.Controllers
 
                 if (createdUser.Succeeded)
                 {
-                    var roleResult = await _userManager.AddToRoleAsync(appUser, "USER");
+                    var roleResult = await _userManager.AddToRoleAsync(appUser, "ADMIN");
 
                     if (roleResult.Succeeded)
                     {

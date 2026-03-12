@@ -1,30 +1,34 @@
-using api.Dtos.Product;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Dtos.Warehouse;
+using api.Interfaces.Repositories;
 using api.Interfaces.Service;
 using api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using api.Interfaces.Repositories;
-// using api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
-    [Route("product")]
+    [Route("warehouse")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class WarehouseController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
 
-        private readonly IProductRepository _productRepo;
+        private readonly IWarehouseRepository _warehouseRepo;
 
-        public ProductController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
-        IProductRepository productRepo)
+        public WarehouseController(UserManager<AppUser> userManager, ICurrentUserService currentUserService,
+        IWarehouseRepository warehouseRepo)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
-            _productRepo = productRepo;
+            _warehouseRepo = warehouseRepo;
         }
 
         // [HttpGet]
@@ -48,67 +52,66 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productRepo.GetAllProduct();
+            var warehouses = await _warehouseRepo.GetAllWarehouses();
 
-            if (product == null)
+            if (warehouses == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(warehouses);
         }
 
-        [HttpGet("{id:long}")]
-        [Authorize]
-        public async Task<IActionResult> GetById([FromRoute] long id)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        // [HttpGet("{id:long}")]
+        // public async Task<IActionResult> GetById([FromRoute] long id)
+        // {
+        //     if (!ModelState.IsValid)
+        //         return BadRequest(ModelState);
 
-            var product = await _productRepo.GetProductById(id);
+        //     var provider = await _providerRepo.GetByIdAsync(id);
 
-            if (product == null)
-            {
-                return NotFound();
-            }
+        //     if (provider == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            return Ok(product);
-        }
+        //     return Ok(provider);
+        // }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> AddProduct([FromBody] ProductAERequestDto productAERequestDto)
+        public async Task<IActionResult> AddWarehouse([FromBody] WarehouseAERequestDto warehouseAERequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             if (!_currentUserService.IsAdmin())
-                return Unauthorized("Only admins can add products!");
+                return Unauthorized("Only admins can add warehouses!");
 
-            var productModel = await _productRepo.AddAsync(productAERequestDto);
-            if (productModel == null)
+            var warehouseModel = await _warehouseRepo.AddAsync(warehouseAERequestDto);
+            if (warehouseModel == null)
             {
-                return BadRequest("Failed to add product.");
+                return BadRequest("Failed to add warehouse.");
             }
-            return Ok(productModel);
+            return Ok(warehouseModel);
         }
 
         [HttpPut]
         [Route("{id:long}")]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] ProductAERequestDto updateDto)
+        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] WarehouseAERequestDto updateDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.UpdateAsync(id, updateDto);
+            var warehouseModel = await _warehouseRepo.UpdateAsync(id, updateDto);
 
-            if (productModel == null)
+            if (warehouseModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(productModel);
+            return Ok(warehouseModel);
         }
 
         [HttpDelete]
@@ -119,9 +122,9 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var productModel = await _productRepo.DeleteAsync(id);
+            var warehouseModel = await _warehouseRepo.DeleteAsync(id);
 
-            if (productModel == null)
+            if (warehouseModel == null)
             {
                 return NotFound();
             }

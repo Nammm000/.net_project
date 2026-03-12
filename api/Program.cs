@@ -1,14 +1,19 @@
 using api.Data;
-using api.Interfaces;
+using api.Interfaces.Service;
+using api.Interfaces.Repositories;
 using api.Models;
 using api.Service;
+using api.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+// using api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// builder.Services.AddScoped<TokenService>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -88,6 +93,15 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProviderRepository, ProviderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+
 
 var app = builder.Build();
 
@@ -107,6 +121,7 @@ app.UseCors(x => x
       //.WithOrigins("https://localhost:44351))
       .SetIsOriginAllowed(origin => true));
 
+// app.UseMiddleware<JwtMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 

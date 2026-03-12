@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using api.Interfaces;
+using api.Interfaces.Service;
 using api.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
@@ -47,6 +47,33 @@ namespace api.Service
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public string ExtractUsername(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            return jwtToken.Claims
+                .First(x => x.Type == ClaimTypes.Name)
+                .Value;
+        }
+
+        public IEnumerable<Claim> ExtractAllClaims(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            return jwtToken.Claims;
+        }
+
+        public string? ExtractRole(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            return jwtToken.Claims
+                .FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value ?? "";
         }
     }
 }

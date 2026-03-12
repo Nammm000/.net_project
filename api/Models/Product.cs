@@ -1,23 +1,32 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace api.Models
 {
-    [Table("Products")]
+    [Table("product1")]
     public class Product
     {
-        public int id { get; set; }
-        public string name { get; set; } = string.Empty;
-        public string description { get; set; } = string.Empty;
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal price { get; set; }
-        // public DateTime CreatedOn { get; set; } = DateTime.Now;
-        // public int? StockId { get; set; }
-        // public Stock? Stock { get; set; }
-        // public string AppUserId { get; set; }
-        // public AppUser AppUser { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long Id { get; set; }
+
+        [Column("name")]
+        public required string Name { get; set; }
+
+        [ForeignKey("Category")]
+        [Column("category_fk")]
+        public long CategoryId { get; set; }
+
+        public Category Category { get; set; } = new Category();
+
+        [Column("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [Column("price")]
+        public decimal? Price { get; set; }
+
+        [Column("status")]
+        public string Status { get; set; } = string.Empty;
+        // Available, OutOfStock, Discontinued
     }
 }
